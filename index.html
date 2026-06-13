@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Bảng Quản Lý IP Khách Truy Cập</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; background: #f4f6f9; }
+        h2 { color: #333; text-align: center; }
+        table { width: 100%; max-width: 600px; margin: 20px auto; border-collapse: collapse; background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #007bff; color: white; }
+        tr:hover { background: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <h2>DANH SÁCH IP KHÁCH VÀO LADIPAGE</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Thời Gian</th>
+                <th>Địa Chỉ IP</th>
+            </tr>
+        </thead>
+        <tbody id="ip-list">
+            </tbody>
+    </table>
+
+    <script>
+        // Tự động đọc file data.json để hiện lên màn hình
+        fetch('data.json')
+        .then(res => res.json())
+        .then(data => {
+            var html = '';
+            if(data.length === 0) {
+                html = '<tr><td colspan="2" style="text-align:center;">Chưa có khách nào vào trang. Hãy cài code vào Ladipage!</td></tr>';
+            } else {
+                data.reverse().forEach(item => { // Hiện khách mới nhất lên đầu
+                    html += `<tr><td>${item.thoi_gian}</td><td><b>${item.ip}</b></td></tr>`;
+                });
+            }
+            document.getElementById('ip-list').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
