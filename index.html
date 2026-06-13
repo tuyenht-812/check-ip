@@ -17,28 +17,37 @@
     <table>
         <thead>
             <tr>
-                <th>Thời Gian</th>
-                <th>Địa Chỉ IP</th>
+                <th>Thông Tin Truy Cập (Thời Gian | Địa Chỉ IP)</th>
             </tr>
         </thead>
         <tbody id="ip-list">
-            </tbody>
+            <tr><td style="text-align:center;">Đang tải danh sách IP...</td></tr>
+        </tbody>
     </table>
 
     <script>
-        // Tự động đọc file data.json để hiện lên màn hình
-        fetch('data.json')
+        // Gọi lên kho lưu trữ đám mây để lấy danh sách IP về hiện lên màn hình
+        fetch('https://api.counterapi.dev/v1/tuyenht812/ip_logs')
         .then(res => res.json())
-        .then(data => {
+        .then(response => {
             var html = '';
-            if(data.length === 0) {
-                html = '<tr><td colspan="2" style="text-align:center;">Chưa có khách nào vào trang. Hãy cài code vào Ladipage!</td></tr>';
-            } else {
-                data.reverse().forEach(item => { // Hiện khách mới nhất lên đầu
-                    html += `<tr><td>${item.thoi_gian}</td><td><b>${item.ip}</b></td></tr>`;
+            // Kiểm tra nếu có dữ liệu IP
+            if(response && response.value) {
+                // Tách các IP được lưu thành từng dòng
+                var logs = response.value.split('\n');
+                logs.reverse().forEach(log => {
+                    if(log.trim() !== "") {
+                        html += `<tr><td><b>${log}</b></td></tr>`;
+                    }
                 });
             }
+            if(html === '') {
+                html = '<tr><td style="text-align:center;">Chưa có khách nào vào trang hoặc chưa bắt được IP.</td></tr>';
+            }
             document.getElementById('ip-list').innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('ip-list').innerHTML = '<tr><td style="text-align:center; color:red;">Lỗi kết nối máy chủ dữ liệu!</td></tr>';
         });
     </script>
 </body>
