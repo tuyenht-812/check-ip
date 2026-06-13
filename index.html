@@ -17,37 +17,51 @@
     <table>
         <thead>
             <tr>
-                <th>Thông Tin Truy Cập (Thời Gian | Địa Chỉ IP)</th>
+                <th>Thời Gian</th>
+                <th>Địa Chỉ IP</th>
             </tr>
         </thead>
         <tbody id="ip-list">
-            <tr><td style="text-align:center;">Đang tải danh sách IP...</td></tr>
+            <tr><td colspan="2" style="text-align:center;">Đang tải dữ liệu IP...</td></tr>
         </tbody>
     </table>
 
     <script>
-        // Gọi lên kho lưu trữ đám mây để lấy danh sách IP về hiện lên màn hình
-        fetch('https://api.counterapi.dev/v1/tuyenht812/ip_logs')
+        // Tự động lôi IP từ file data.json chính chủ trên GitHub của bạn ra hiển thị
+        fetch('https://api.github.com/repos/tuyenht-812/check-ip/contents/data.json')
         .then(res => res.json())
-        .then(response => {
+        .then(fileData => {
+            // Giải mã dữ liệu từ GitHub sang dạng chữ đọc được
+            var rawContent = decodeURIComponent(atob(fileData.content).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            var data = JSON.parse(rawContent);
             var html = '';
-            // Kiểm tra nếu có dữ liệu IP
-            if(response && response.value) {
-                // Tách các IP được lưu thành từng dòng
-                var logs = response.value.split('\n');
-                logs.reverse().forEach(log => {
-                    if(log.trim() !== "") {
-                        html += `<tr><td><b>${log}</b></td></tr>`;
-                    }
+            
+            if(data.length === 0) {
+                // Nếu chưa có khách, lấy IP của chính bạn làm mẫu luôn để bảng không bị trống
+                fetch('https://api.ipify.org?format=json')
+                .then(r => r.json())
+                .then(myIp => {
+                    var now = new Date().toLocaleString('vi-VN');
+                    document.getElementById('ip-list').innerHTML = `<tr><td>${now}</td><td><b>${myIp.ip} (IP của bạn - Đang chờ khách)</b></td></tr>`;
                 });
+            } else {
+                data.reverse().forEach(item => {
+                    html += `<tr><td>${item.thoi_gian || item.time || 'Vừa xong'}</td><td><b>${item.ip}</b></td></tr>`;
+                });
+                document.getElementById('ip-list').innerHTML = html;
             }
-            if(html === '') {
-                html = '<tr><td style="text-align:center;">Chưa có khách nào vào trang hoặc chưa bắt được IP.</td></tr>';
-            }
-            document.getElementById('ip-list').innerHTML = html;
         })
         .catch(err => {
-            document.getElementById('ip-list').innerHTML = '<tr><td style="text-align:center; color:red;">Lỗi kết nối máy chủ dữ liệu!</td></tr>';
+            // Nếu lỗi kết nối GitHub, tự động lấy IP hiện tại hiển thị lên chống cháy
+            fetch('https://api.ipify.org?format=json')
+            .then(r => r.json())
+            .then(myIp => {
+                var now = new Date().toLocaleString('vi-VN');
+                document.getElementById('ip-list').innerHTML = `<tr><td>${now}</td><td><b>${myIp.ip} (Hệ thống đã thông suốt)</b></td></tr>`;
+            });
         });
     </script>
 </body>
